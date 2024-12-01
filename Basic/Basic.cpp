@@ -6,6 +6,7 @@
 
 #include <cctype>
 #include <iostream>
+#include <memory>
 #include <string>
 #include "exp.hpp"
 #include "parser.hpp"
@@ -239,7 +240,7 @@ Statement* parseClause(std::string line, bool singleLine) {
         if (t.hasMoreTokens()) {
             throw ErrorException("SYNTAX ERROR");
         }
-        return new IfStmt(exp1, line[equal], exp2, stringToInteger(lineNum));
+        return new IfStmt(exp1.get(), line[equal], exp2.get(), stringToInteger(lineNum));
     }
     if (token == "END") {
         if (singleLine) {
@@ -254,6 +255,7 @@ Statement* parseClause(std::string line, bool singleLine) {
 }
 
 bool validVarName(const std::string &n) {
+    if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END" && n != "RUN" && n != "LIST" && n != "CLEAR" && n != "QUIT" && n != "HELP") {
     if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END" && n != "RUN" && n != "LIST" && n != "CLEAR" && n != "QUIT" && n != "HELP") {
         return true;
     }
