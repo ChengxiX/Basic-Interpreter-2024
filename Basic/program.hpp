@@ -148,12 +148,12 @@ public:
 
     //more func to add
     //todo
+    std::map<int, Clause> clauses;
 
 private:
 
     // Fill this in with whatever types and instance variables you need
     //todo
-    std::map<int, Clause> clauses;
 };
 
 #endif

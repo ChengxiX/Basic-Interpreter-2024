@@ -14,12 +14,13 @@
 #include "Utils/error.hpp"
 #include "Utils/tokenScanner.hpp"
 #include "Utils/strlib.hpp"
+#pragma GCC optimize(2)
 
 
 /* Function prototypes */
 
 void processLine(std::string line, Program &program, EvalState &state);
-Statement* parseClause(std::string line, bool singleLine);
+Statement* parseClause(std::string line, bool singleLine=false);
 
 /* Main program */
 
@@ -33,6 +34,53 @@ int main() {
             getline(std::cin, input);
             if (input.empty())
                 return 0;
+            TokenScanner scanner(input);
+            std::string f = scanner.nextToken();
+            if (scanner.getTokenType(f) == NUMBER) {
+                if (!scanner.hasMoreTokens()) {
+                    program.removeSourceLine(stringToInteger(f));
+                    continue;
+                }
+                program.addSourceLine(stringToInteger(f), input);
+                continue;
+            }
+            if (! (scanner.getTokenType(f)==WORD)) {
+                throw ErrorException("SYNTAX ERROR");
+            }
+            if (f == "RUN") {
+                if (program.clauses.empty()) {
+                    continue;
+                }
+                for (auto it = program.clauses.begin(); it != program.clauses.end(); it++) {
+                    program.setParsedStatement(it->first, parseClause(it->second.source));
+                }
+                int line = program.getFirstLineNumber();
+                Statement *stmt = program.getParsedStatement(line);
+                stmt->execute(state, program);
+                continue;
+            }
+            if (f == "LIST") {
+                for (auto &it : program.clauses) {
+                    std::cout << it.second.source << std::endl;
+                }
+                continue;
+            }
+            if (f == "CLEAR") {
+                program.clear();
+                state.Clear();
+                continue;
+            }
+            if (f == "QUIT") {
+                return 0;
+            }
+            if (f == "HELP") {
+                std::cout << "RUN: run the program" << '\n';
+                std::cout << "LIST: list the program" << '\n';
+                std::cout << "CLEAR: clear the program" << '\n';
+                std::cout << "QUIT: quit the program" << '\n';
+                std::cout << "HELP: print this help message" << std::endl;
+                continue;
+            }
             processLine(input, program, state);
         } catch (ErrorException &ex) {
             std::cout << ex.getMessage() << std::endl;
@@ -58,10 +106,16 @@ void processLine(std::string line, Program &program, EvalState &state) {
     s->execute(state, program);
 }
 
-Statement* parseClause(std::string line, bool singleLine=false) {
+Statement* parseClause(std::string line, bool singleLine) {
     TokenScanner scanner(line);
     scanner.ignoreWhitespace();
     scanner.scanNumbers();
+    if (!singleLine) {
+        std::string line = scanner.nextToken();
+        if (scanner.getTokenType(line) != NUMBER) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+    }
     std::string token = scanner.nextToken();
     if (scanner.getTokenType(token) != WORD) {
         throw ErrorException("SYNTAX ERROR");
@@ -109,21 +163,40 @@ Statement* parseClause(std::string line, bool singleLine=false) {
         if (singleLine) {
             throw ErrorException("SYNTAX ERROR");
         }
-        Expression *exp1 = parseExp(scanner);
-        std::string cmp = scanner.nextToken();
-        if (cmp != "<" && cmp != "=" && cmp != ">") {
+        int i = line.find("IF");
+        int equal = line.find("=");
+        if (equal == std::string::npos) {
+            equal = line.find("<");
+        }
+        if (equal == std::string::npos) {
+            equal = line.find(">");
+        }
+        if (equal == std::string::npos) {
             throw ErrorException("SYNTAX ERROR");
         }
-        Expression *exp2 = parseExp(scanner);
-        std::string then = scanner.nextToken();
-        if (then != "THEN") {
+        int then_ = line.find("THEN", equal);
+        if (then_ == std::string::npos) {
             throw ErrorException("SYNTAX ERROR");
         }
-        std::string line = scanner.nextToken();
-        if (scanner.getTokenType(line) != NUMBER) {
+        std::string left = line.substr(i+2, equal-i-2);
+        std::string right = line.substr(equal+1, then_-equal-1);
+        std::string then = line.substr(then_+4);
+        auto l = TokenScanner(left);
+        auto r = TokenScanner(right);
+        auto t = TokenScanner(then);
+        l.ignoreWhitespace();
+        l.scanNumbers();
+        r.ignoreWhitespace();
+        r.scanNumbers();
+        t.ignoreWhitespace();
+        t.scanNumbers();
+        Expression *exp1 = parseExp(l);
+        Expression *exp2 = parseExp(r);
+        std::string lineNum = t.nextToken();
+        if (scanner.getTokenType(lineNum) != NUMBER) {
             throw ErrorException("SYNTAX ERROR");
         }
-        return new IfStmt(exp1, cmp[0], exp2, stringToInteger(line));
+        return new IfStmt(exp1, line[equal], exp2, stringToInteger(lineNum));
     }
     if (token == "END") {
         if (singleLine) {

@@ -32,7 +32,11 @@ void Statement::next(EvalState &state, Program &program, int aimLine) {
         program.getParsedStatement(aimLine)->execute(state, program);
     }
     else {
-        program.getParsedStatement(program.getNextLineNumber(lineNum))->execute(state, program);
+        int next = program.getNextLineNumber(lineNum);
+        if (next==-1) {
+            return;
+        }
+        program.getParsedStatement(next)->execute(state, program);
     }
 }
 
@@ -70,8 +74,9 @@ void InputStmt::execute(EvalState &state, Program &program) {
     while (true) {
         std::cout << " ? ";
         getline(std::cin, input);
-        TokenScanner scanner;
-        if (scanner.getTokenType(input)!= NUMBER) {
+        TokenScanner scanner(input);
+        auto token = scanner.nextToken();
+        if (scanner.getTokenType(token)!= NUMBER || scanner.hasMoreTokens()) {
             std::cout << "INVALID NUMBER" << std::endl;
             continue;
         }
@@ -89,7 +94,6 @@ void EndStmt::execute(EvalState &state, Program &program) {
 /* Implementation of the GotoStmt class */
 GotoStmt::GotoStmt(int lineNumber) : lineNumber(lineNumber) {}
 void GotoStmt::execute(EvalState &state, Program &program) {
-    program.getParsedStatement(lineNumber)->execute(state, program);
     Statement::next(state, program, lineNumber);
 }
 

@@ -14,11 +14,18 @@
 
 Program::Program() = default;
 
-Program::~Program() = default;
+Program::~Program() {
+    for (auto it = clauses.begin(); it != clauses.end(); it++) {
+        delete it->second.stmt;
+    }
+}
 
 void Program::clear() {
     // Replace this stub with your own code
     //todo
+    for (auto it = clauses.begin(); it != clauses.end(); it++) {
+        delete it->second.stmt;
+    }
     clauses.clear();
 }
 
@@ -31,6 +38,7 @@ void Program::addSourceLine(int lineNumber, const std::string &line) {
 void Program::removeSourceLine(int lineNumber) {
     // Replace this stub with your own code
     //todo
+    delete clauses[lineNumber].stmt;
     clauses.erase(lineNumber);
 }
 
@@ -54,7 +62,7 @@ Statement *Program::getParsedStatement(int lineNumber) {
     //todo
     auto it = clauses.find(lineNumber);
     if (it == clauses.end()) {
-
+        throw ErrorException("LINE NUMBER ERROR");
     }
     return it->second.stmt;
 }
@@ -71,6 +79,9 @@ int Program::getNextLineNumber(int lineNumber) {
     // todo
     auto it = clauses.find(lineNumber);
     it++;
+    if (it==clauses.end()) {
+        return -1;
+    }
     return it->first;
 }
 
