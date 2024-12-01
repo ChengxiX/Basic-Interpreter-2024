@@ -6,6 +6,7 @@
 
 #include <cctype>
 #include <iostream>
+#include <memory>
 #include <string>
 #include "exp.hpp"
 #include "parser.hpp"
@@ -138,8 +139,8 @@ Statement* parseClause(std::string line, bool singleLine) {
             throw ErrorException("SYNTAX ERROR");
         }
         try {
-            Expression *exp = parseExp(scanner);
-            return new LetStmt(var, exp);
+            std::shared_ptr<Expression> exp(parseExp(scanner));
+            return new LetStmt(var, exp.get());
         }
         catch (ErrorException &ex) {
             throw ErrorException("SYNTAX ERROR");
@@ -148,8 +149,8 @@ Statement* parseClause(std::string line, bool singleLine) {
     }
     if (token == "PRINT") {
         try {
-            Expression *exp = parseExp(scanner);
-            return new PrintStmt(exp);
+            std::shared_ptr<Expression> exp(parseExp(scanner));
+            return new PrintStmt(exp.get());
         }
         catch (ErrorException &ex) {
             throw ErrorException("SYNTAX ERROR");
@@ -209,8 +210,8 @@ Statement* parseClause(std::string line, bool singleLine) {
         r.scanNumbers();
         t.ignoreWhitespace();
         t.scanNumbers();
-        Expression *exp1 = parseExp(l);
-        Expression *exp2 = parseExp(r);
+        std::shared_ptr<Expression> exp1(parseExp(l));
+        std::shared_ptr<Expression> exp2(parseExp(r));
         std::string lineNum = t.nextToken();
         if (t.getTokenType(lineNum) != NUMBER) {
             throw ErrorException("SYNTAX ERROR");
@@ -218,7 +219,7 @@ Statement* parseClause(std::string line, bool singleLine) {
         if (t.hasMoreTokens()) {
             throw ErrorException("SYNTAX ERROR");
         }
-        return new IfStmt(exp1, line[equal], exp2, stringToInteger(lineNum));
+        return new IfStmt(exp1.get(), line[equal], exp2.get(), stringToInteger(lineNum));
     }
     if (token == "END") {
         if (singleLine) {
