@@ -10,6 +10,7 @@
 #include "exp.hpp"
 #include "parser.hpp"
 #include "program.hpp"
+#include "statement.hpp"
 #include "Utils/error.hpp"
 #include "Utils/tokenScanner.hpp"
 #include "Utils/strlib.hpp"
@@ -18,6 +19,7 @@
 /* Function prototypes */
 
 void processLine(std::string line, Program &program, EvalState &state);
+Statement* parseClause(std::string line, bool singleLine);
 
 /* Main program */
 
@@ -52,14 +54,83 @@ int main() {
  */
 
 void processLine(std::string line, Program &program, EvalState &state) {
-    TokenScanner scanner;
+    auto s = parseClause(line, true);
+    s->execute(state, program);
+}
+
+Statement* parseClause(std::string line, bool singleLine=false) {
+    TokenScanner scanner(line);
     scanner.ignoreWhitespace();
     scanner.scanNumbers();
-    scanner.setInput(line);
-
-    //todo
-    while(scanner.hasMoreTokens()) {
-        
+    std::string token = scanner.nextToken();
+    if (scanner.getTokenType(token) != WORD) {
+        throw ErrorException("SYNTAX ERROR");
     }
+    if (token == "REM") {
+        if (singleLine) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        return new RemStmt(line);
+    }
+    if (token == "LET") {
+        std::string var = scanner.nextToken();
+        if (scanner.getTokenType(var) != WORD && scanner.getTokenType(var) != NUMBER) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        std::string op = scanner.nextToken();
+        if (op != "=") {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        Expression *exp = parseExp(scanner);
+        return new LetStmt(var, exp);
+    }
+    if (token == "PRINT") {
+        Expression *exp = parseExp(scanner);
+        return new PrintStmt(exp);
+    }
+    if (token == "INPUT") {
+        std::string var = scanner.nextToken();
+        if (scanner.getTokenType(var) != WORD && scanner.getTokenType(var) != NUMBER) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        return new InputStmt(var);
+    }
+    if (token == "GOTO") {
+        if (singleLine) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        std::string line = scanner.nextToken();
+        if (scanner.getTokenType(line) != NUMBER) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        return new GotoStmt(stringToInteger(line));
+    }
+    if (token == "IF") {
+        if (singleLine) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        Expression *exp1 = parseExp(scanner);
+        std::string cmp = scanner.nextToken();
+        if (cmp != "<" && cmp != "=" && cmp != ">") {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        Expression *exp2 = parseExp(scanner);
+        std::string then = scanner.nextToken();
+        if (then != "THEN") {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        std::string line = scanner.nextToken();
+        if (scanner.getTokenType(line) != NUMBER) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        return new IfStmt(exp1, cmp[0], exp2, stringToInteger(line));
+    }
+    if (token == "END") {
+        if (singleLine) {
+            throw ErrorException("SYNTAX ERROR");
+        }
+        return new EndStmt();
+    }
+    throw ErrorException("SYNTAX ERROR");
 }
 

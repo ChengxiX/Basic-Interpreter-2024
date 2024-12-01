@@ -69,7 +69,9 @@ public:
  * controlling the operation of the interpreter.
  */
 
-    void execute(EvalState &state, Program &program, int aimLine);
+    virtual void execute(EvalState &state, Program &program) = 0;
+
+    void next(EvalState &state, Program &program, int aimLine=-1);
 };
 
 
@@ -88,7 +90,7 @@ public:
 class RemStmt : public Statement {
 public:
     RemStmt(std::string comment);
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class LetStmt : public Statement {
@@ -97,7 +99,7 @@ public:
     std::string var;
     Expression *exp;
     ~LetStmt() override;
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class PrintStmt : public Statement {
@@ -105,27 +107,27 @@ public:
     PrintStmt(Expression *exp);
     Expression *exp;
     ~PrintStmt() override;
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class InputStmt : public Statement {
 public:
     InputStmt(std::string var);
     std::string var;
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class EndStmt : public Statement {
 public:
     EndStmt();
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class GotoStmt : public Statement {
 public:
     GotoStmt(int lineNumber);
     int lineNumber;
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 class IfStmt : public Statement {
@@ -136,7 +138,7 @@ public:
     char cmp;
     int lineNumber;
     ~IfStmt() override;
-    void execute(EvalState &state, Program &program);
+    void execute(EvalState &state, Program &program) override;
 };
 
 #endif

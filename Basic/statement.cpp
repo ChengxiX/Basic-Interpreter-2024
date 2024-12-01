@@ -9,6 +9,8 @@
 
 #include "statement.hpp"
 #include "Utils/error.hpp"
+#include "Utils/tokenScanner.hpp"
+#include <cstdio>
 
 
 /* Implementation of the Statement class */
@@ -19,7 +21,7 @@ Statement::Statement() = default;
 
 Statement::~Statement() = default;
 
-void Statement::execute(EvalState &state, Program &program, int aimLine=-1) {
+void Statement::next(EvalState &state, Program &program, int aimLine) {
     if (lineNum==-1) {
         if (aimLine != -1) {
             throw ErrorException("SYNTAX ERROR"); // SYNTAXERROR
@@ -38,7 +40,7 @@ void Statement::execute(EvalState &state, Program &program, int aimLine=-1) {
 
 RemStmt::RemStmt(std::string comment) {}
 void RemStmt::execute(EvalState &state, Program &program) {
-    Statement::execute(state, program);
+    Statement::next(state, program);
 }
 
 /* Implementation of the LetStmt class */
@@ -48,7 +50,7 @@ LetStmt::~LetStmt() {
 }
 void LetStmt::execute(EvalState &state, Program &program) {
     state.setValue(var, exp->eval(state));
-    Statement::execute(state, program);
+    Statement::next(state, program);
 }
 
 /* Implementation of the PrintStmt class */
@@ -57,17 +59,26 @@ PrintStmt::~PrintStmt() {
     delete exp;
 }
 void PrintStmt::execute(EvalState &state, Program &program) {
-    std::cout << exp->eval(state);
-    Statement::execute(state, program);
+    std::cout << exp->eval(state) << std::endl;
+    Statement::next(state, program);
 }
 
 /* Implementation of the InputStmt class */
 InputStmt::InputStmt(std::string var) : var(var) {}
 void InputStmt::execute(EvalState &state, Program &program) {
     std::string input;
-    std::cin >> input; // 类型？
-    state.setValue(var, stringToInt(input));
-    Statement::execute(state, program);
+    while (true) {
+        std::cout << " ? ";
+        getline(std::cin, input);
+        TokenScanner scanner;
+        if (scanner.getTokenType(input)!= NUMBER) {
+            std::cout << "INVALID NUMBER" << std::endl;
+            continue;
+        }
+        break;
+    }
+    state.setValue(var, std::stoi(input));
+    Statement::next(state, program);
 }
 
 /* Implementation of the EndStmt class */
@@ -79,7 +90,7 @@ void EndStmt::execute(EvalState &state, Program &program) {
 GotoStmt::GotoStmt(int lineNumber) : lineNumber(lineNumber) {}
 void GotoStmt::execute(EvalState &state, Program &program) {
     program.getParsedStatement(lineNumber)->execute(state, program);
-    Statement::execute(state, program, lineNumber);
+    Statement::next(state, program, lineNumber);
 }
 
 /* Implementation of the IfStmt class */
@@ -93,31 +104,31 @@ IfStmt::~IfStmt() {
 void IfStmt::execute(EvalState &state, Program &program) {
     if (cmp == '=') {
         if (exp->eval(state) == exp2->eval(state)) {
-            Statement::execute(state, program, lineNumber);
+            Statement::next(state, program, lineNumber);
             return;
         }
         else {
-            Statement::execute(state, program);
+            Statement::next(state, program);
             return;
         }
     }
     if (cmp == '<') {
         if (exp->eval(state) < exp2->eval(state)) {
-            Statement::execute(state, program, lineNumber);
+            Statement::next(state, program, lineNumber);
             return;
         }
         else {
-            Statement::execute(state, program);
+            Statement::next(state, program);
             return;
         }
     }
     if (cmp == '>') {
         if (exp->eval(state) > exp2->eval(state)) {
-            Statement::execute(state, program, lineNumber);
+            Statement::next(state, program, lineNumber);
             return;
         }
         else {
-            Statement::execute(state, program);
+            Statement::next(state, program);
             return;
         }
     }
