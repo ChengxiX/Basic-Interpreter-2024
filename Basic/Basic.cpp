@@ -234,7 +234,7 @@ Statement* parseClause(std::string line, bool singleLine) {
 }
 
 bool validVarName(const std::string &n) {
-    if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END") {
+    if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END" && n != "RUN" && n != "LIST" && n != "CLEAR" && n != "QUIT" && n != "HELP") {
         return true;
     }
     return false;
