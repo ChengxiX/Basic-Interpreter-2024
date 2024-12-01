@@ -5,6 +5,7 @@
  */
 
 #include "parser.hpp"
+#include "Utils/error.hpp"
 
 
 /*
@@ -16,7 +17,7 @@
 Expression *parseExp(TokenScanner &scanner) {
     Expression *exp = readE(scanner);
     if (scanner.hasMoreTokens()) {
-        error("parseExp: Found extra token: " + scanner.nextToken());
+        ErrorException("parseExp: Found extra token: " + scanner.nextToken());
     }
     return exp;
 }
