@@ -104,6 +104,7 @@ int main() {
 void processLine(std::string line, Program &program, EvalState &state) {
     auto s = parseClause(line, true);
     s->execute(state, program);
+    delete s;
 }
 
 Statement* parseClause(std::string line, bool singleLine) {
