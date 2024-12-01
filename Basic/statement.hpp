@@ -85,4 +85,59 @@ public:
  * specify its own destructor method to free that memory.
  */
 
+
+class RemStmt : public Statement {
+public:
+    RemStmt(std::string comment);
+    void execute(EvalState &state, Program &program) override;
+};
+
+class LetStmt : public Statement {
+public:
+    LetStmt(std::string var,Expression *exp);
+    std::string var;
+    Expression *exp;
+    ~LetStmt() override;
+    void execute(EvalState &state, Program &program) override;
+};
+
+class PrintStmt : public Statement {
+public:
+    PrintStmt(Expression *exp);
+    Expression *exp;
+    ~PrintStmt() override;
+    void execute(EvalState &state, Program &program) override;
+};
+
+class InputStmt : public Statement {
+public:
+    InputStmt(std::string var);
+    std::string var;
+    void execute(EvalState &state, Program &program) override;
+};
+
+class EndStmt : public Statement {
+public:
+    EndStmt();
+    void execute(EvalState &state, Program &program) override;
+};
+
+class GotoStmt : public Statement {
+public:
+    GotoStmt(int lineNumber);
+    int lineNumber;
+    void execute(EvalState &state, Program &program) override;
+};
+
+class IfStmt : public Statement {
+public:
+    IfStmt(Expression *exp, char cmp, Expression *exp2, int lineNumber);
+    Expression *exp;
+    Expression *exp2;
+    char cmp;
+    int lineNumber;
+    ~IfStmt() override;
+    void execute(EvalState &state, Program &program) override;
+};
+
 #endif

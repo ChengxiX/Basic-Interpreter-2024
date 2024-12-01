@@ -27,6 +27,8 @@
 class EvalState {
 
 public:
+    bool singleStep;
+    int currentLineNumber;
 
 /*
  * Constructor: EvalState
