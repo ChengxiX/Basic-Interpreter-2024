@@ -138,21 +138,29 @@ Statement* parseClause(std::string line, bool singleLine) {
         if (op != "=") {
             throw ErrorException("SYNTAX ERROR");
         }
+        Expression *exp = nullptr;
         try {
-            std::shared_ptr<Expression> exp(parseExp(scanner));
-            return new LetStmt(var, exp.get());
+            exp = parseExp(scanner);
+            return new LetStmt(var, exp);
         }
         catch (ErrorException &ex) {
+            if (exp != nullptr) {
+                delete exp;
+            }
             throw ErrorException("SYNTAX ERROR");
         }
         
     }
     if (token == "PRINT") {
+        Expression *exp = nullptr;
         try {
-            std::shared_ptr<Expression> exp(parseExp(scanner));
-            return new PrintStmt(exp.get());
+            exp = parseExp(scanner);
+            return new PrintStmt(exp);
         }
         catch (ErrorException &ex) {
+            if (exp != nullptr) {
+                delete exp;
+            }
             throw ErrorException("SYNTAX ERROR");
         }
     }
@@ -210,8 +218,21 @@ Statement* parseClause(std::string line, bool singleLine) {
         r.scanNumbers();
         t.ignoreWhitespace();
         t.scanNumbers();
-        std::shared_ptr<Expression> exp1(parseExp(l));
-        std::shared_ptr<Expression> exp2(parseExp(r));
+        Expression *exp1 = nullptr;
+        Expression *exp2 = nullptr;
+        try {
+            exp1 = parseExp(l);
+            exp2 = parseExp(r);
+        }
+        catch (ErrorException &ex) {
+            if (exp1 != nullptr) {
+                delete exp1;
+            }
+            if (exp2 != nullptr) {
+                delete exp2;
+            }
+            throw ErrorException("SYNTAX ERROR");
+        }
         std::string lineNum = t.nextToken();
         if (t.getTokenType(lineNum) != NUMBER) {
             throw ErrorException("SYNTAX ERROR");
@@ -234,6 +255,7 @@ Statement* parseClause(std::string line, bool singleLine) {
 }
 
 bool validVarName(const std::string &n) {
+    if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END" && n != "RUN" && n != "LIST" && n != "CLEAR" && n != "QUIT" && n != "HELP") {
     if (n != "LET" && n != "PRINT" && n != "INPUT" && n != "IF" && n != "THEN" && n != "GOTO" && n != "REM" && n != "END" && n != "RUN" && n != "LIST" && n != "CLEAR" && n != "QUIT" && n != "HELP") {
         return true;
     }
