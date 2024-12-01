@@ -37,7 +37,7 @@ class Program;
 class Statement {
 
 public:
-
+    int lineNum = -1;
 /*
  * Constructor: Statement
  * ----------------------
@@ -69,8 +69,7 @@ public:
  * controlling the operation of the interpreter.
  */
 
-    virtual void execute(EvalState &state, Program &program) = 0;
-
+    void execute(EvalState &state, Program &program, int aimLine);
 };
 
 
@@ -89,7 +88,7 @@ public:
 class RemStmt : public Statement {
 public:
     RemStmt(std::string comment);
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class LetStmt : public Statement {
@@ -98,7 +97,7 @@ public:
     std::string var;
     Expression *exp;
     ~LetStmt() override;
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class PrintStmt : public Statement {
@@ -106,27 +105,27 @@ public:
     PrintStmt(Expression *exp);
     Expression *exp;
     ~PrintStmt() override;
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class InputStmt : public Statement {
 public:
     InputStmt(std::string var);
     std::string var;
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class EndStmt : public Statement {
 public:
     EndStmt();
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class GotoStmt : public Statement {
 public:
     GotoStmt(int lineNumber);
     int lineNumber;
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 class IfStmt : public Statement {
@@ -137,7 +136,7 @@ public:
     char cmp;
     int lineNumber;
     ~IfStmt() override;
-    void execute(EvalState &state, Program &program) override;
+    void execute(EvalState &state, Program &program);
 };
 
 #endif

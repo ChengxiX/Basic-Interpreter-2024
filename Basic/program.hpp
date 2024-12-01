@@ -11,11 +11,17 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <unordered_map>
+#include <map>
 #include "statement.hpp"
 
 
 class Statement;
+
+struct Clause {
+    int lineNumber;
+    std::string source;
+    Statement *stmt;
+};
 
 /*
  * This class stores the lines in a BASIC program.  Each line
@@ -147,6 +153,7 @@ private:
 
     // Fill this in with whatever types and instance variables you need
     //todo
+    std::map<int, Clause> clauses;
 };
 
 #endif

@@ -58,5 +58,8 @@ void processLine(std::string line, Program &program, EvalState &state) {
     scanner.setInput(line);
 
     //todo
+    while(scanner.hasMoreTokens()) {
+        
+    }
 }
 

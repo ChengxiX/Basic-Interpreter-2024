@@ -8,7 +8,7 @@
  */
 
 #include "statement.hpp"
-#include "control.cpp"
+#include "Utils/error.hpp"
 
 
 /* Implementation of the Statement class */
@@ -19,11 +19,26 @@ Statement::Statement() = default;
 
 Statement::~Statement() = default;
 
+void Statement::execute(EvalState &state, Program &program, int aimLine=-1) {
+    if (lineNum==-1) {
+        if (aimLine != -1) {
+            throw ErrorException("SYNTAX ERROR"); // SYNTAXERROR
+        }
+        return;
+    }
+    if (aimLine != -1) {
+        program.getParsedStatement(aimLine)->execute(state, program);
+    }
+    else {
+        program.getParsedStatement(program.getNextLineNumber(lineNum))->execute(state, program);
+    }
+}
+
 /* Implementation of the RemStmt class */
 
 RemStmt::RemStmt(std::string comment) {}
 void RemStmt::execute(EvalState &state, Program &program) {
-    nextControl(state, program);
+    Statement::execute(state, program);
 }
 
 /* Implementation of the LetStmt class */
@@ -33,7 +48,7 @@ LetStmt::~LetStmt() {
 }
 void LetStmt::execute(EvalState &state, Program &program) {
     state.setValue(var, exp->eval(state));
-    nextControl(state, program);
+    Statement::execute(state, program);
 }
 
 /* Implementation of the PrintStmt class */
@@ -43,7 +58,7 @@ PrintStmt::~PrintStmt() {
 }
 void PrintStmt::execute(EvalState &state, Program &program) {
     std::cout << exp->eval(state);
-    nextControl(state, program);
+    Statement::execute(state, program);
 }
 
 /* Implementation of the InputStmt class */
@@ -52,7 +67,7 @@ void InputStmt::execute(EvalState &state, Program &program) {
     std::string input;
     std::cin >> input; // 类型？
     state.setValue(var, stringToInt(input));
-    nextControl(state, program);
+    Statement::execute(state, program);
 }
 
 /* Implementation of the EndStmt class */
@@ -64,7 +79,7 @@ void EndStmt::execute(EvalState &state, Program &program) {
 GotoStmt::GotoStmt(int lineNumber) : lineNumber(lineNumber) {}
 void GotoStmt::execute(EvalState &state, Program &program) {
     program.getParsedStatement(lineNumber)->execute(state, program);
-    nextControl(state, program, lineNumber);
+    Statement::execute(state, program, lineNumber);
 }
 
 /* Implementation of the IfStmt class */
@@ -78,31 +93,31 @@ IfStmt::~IfStmt() {
 void IfStmt::execute(EvalState &state, Program &program) {
     if (cmp == '=') {
         if (exp->eval(state) == exp2->eval(state)) {
-            nextControl(state, program, lineNumber);
+            Statement::execute(state, program, lineNumber);
             return;
         }
         else {
-            nextControl(state, program);
+            Statement::execute(state, program);
             return;
         }
     }
     if (cmp == '<') {
         if (exp->eval(state) < exp2->eval(state)) {
-            nextControl(state, program, lineNumber);
+            Statement::execute(state, program, lineNumber);
             return;
         }
         else {
-            nextControl(state, program);
+            Statement::execute(state, program);
             return;
         }
     }
     if (cmp == '>') {
         if (exp->eval(state) > exp2->eval(state)) {
-            nextControl(state, program, lineNumber);
+            Statement::execute(state, program, lineNumber);
             return;
         }
         else {
-            nextControl(state, program);
+            Statement::execute(state, program);
             return;
         }
     }
