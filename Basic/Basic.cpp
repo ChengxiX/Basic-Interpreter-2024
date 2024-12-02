@@ -15,7 +15,7 @@
 #include "Utils/error.hpp"
 #include "Utils/tokenScanner.hpp"
 #include "Utils/strlib.hpp"
-//#pragma GCC optimize(2)
+#pragma GCC optimize(3)
 
 
 /* Function prototypes */
