@@ -20,7 +20,7 @@ class Statement;
 struct Clause {
     int lineNumber;
     std::string source;
-    Statement *stmt;
+    Statement *stmt = nullptr;
 };
 
 /*

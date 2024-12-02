@@ -15,12 +15,12 @@
 #include "Utils/error.hpp"
 #include "Utils/tokenScanner.hpp"
 #include "Utils/strlib.hpp"
-#pragma GCC optimize(2)
+//#pragma GCC optimize(2)
 
 
 /* Function prototypes */
 
-void processLine(std::string line, Program &program, EvalState &state, Statement * s);
+void processLine(std::string line, Program &program, EvalState &state);
 Statement* parseClause(std::string line, bool singleLine=false);
 bool validVarName(const std::string &);
 
@@ -31,12 +31,11 @@ int main() {
     Program program;
     //cout << "Stub implementation of BASIC" << endl;
     while (true) {
-        Statement *s = nullptr;
         try {
             std::string input;
             getline(std::cin, input);
             if (input.empty())
-                return 0;
+                continue;
             TokenScanner scanner(input);
             std::string f = scanner.nextToken();
             if (scanner.getTokenType(f) == NUMBER) {
@@ -55,6 +54,9 @@ int main() {
                     continue;
                 }
                 for (auto it = program.clauses.begin(); it != program.clauses.end(); it++) {
+                    if (it->second.stmt != nullptr) {
+                        delete it->second.stmt;
+                    }
                     program.setParsedStatement(it->first, parseClause(it->second.source));
                 }
                 int line = program.getFirstLineNumber();
@@ -84,12 +86,9 @@ int main() {
                 std::cout << "HELP: print this help message" << std::endl;
                 continue;
             }
-            processLine(input, program, state, s);
+            processLine(input, program, state);
         } catch (ErrorException &ex) {
             std::cout << ex.getMessage() << std::endl;
-            if (s != nullptr) {
-                delete s;
-            }
         }
     }
     return 0;
@@ -107,11 +106,21 @@ int main() {
  * or one of the BASIC commands, such as LIST or RUN.
  */
 
-void processLine(std::string line, Program &program, EvalState &state, Statement * s) {
-    s = parseClause(line, true);
-    s->execute(state, program);
-    delete s;
-    s = nullptr;
+void processLine(std::string line, Program &program, EvalState &state) {
+    Statement * s = parseClause(line, true);
+    try {
+        s->execute(state, program);
+    }
+    catch (ErrorException &ex) {
+        delete s;
+        s = nullptr;
+        throw ex;
+    }
+    if (s != nullptr) {
+        delete s;
+        s = nullptr;
+    }
+    
 }
 
 Statement* parseClause(std::string line, bool singleLine) {

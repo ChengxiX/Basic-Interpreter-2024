@@ -11,7 +11,7 @@
 #include "Utils/error.hpp"
 #include "Utils/tokenScanner.hpp"
 #include <cstdio>
-
+#include "myTokenScanner.cpp"
 
 /* Implementation of the Statement class */
 
@@ -75,8 +75,13 @@ void InputStmt::execute(EvalState &state, Program &program) {
         std::cout << " ? ";
         getline(std::cin, input);
         TokenScanner scanner(input);
+        scanner.scanNumbers();
         auto token = scanner.nextToken();
-        if (scanner.getTokenType(token)!= NUMBER || scanner.hasMoreTokens()) {
+        if (token == "-") {
+            token = scanner.nextToken();
+        }
+        myTokenScanner temp;
+        if (temp.getTokenType(token)!= NUMBER || scanner.hasMoreTokens()) {
             std::cout << "INVALID NUMBER" << std::endl;
             continue;
         }
