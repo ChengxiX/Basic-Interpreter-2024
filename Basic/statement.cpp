@@ -50,6 +50,7 @@ void RemStmt::execute(EvalState &state, Program &program) {
 /* Implementation of the LetStmt class */
 LetStmt::LetStmt(std::string var, Expression *exp) : var(var), exp(exp) {}
 LetStmt::~LetStmt() {
+    delete exp;
 }
 void LetStmt::execute(EvalState &state, Program &program) {
     state.setValue(var, exp->eval(state));
@@ -59,6 +60,7 @@ void LetStmt::execute(EvalState &state, Program &program) {
 /* Implementation of the PrintStmt class */
 PrintStmt::PrintStmt(Expression *exp) : exp(exp) {}
 PrintStmt::~PrintStmt() {
+    delete exp;
 }
 void PrintStmt::execute(EvalState &state, Program &program) {
     std::cout << exp->eval(state) << std::endl;
@@ -99,6 +101,8 @@ void GotoStmt::execute(EvalState &state, Program &program) {
 IfStmt::IfStmt(Expression *exp, char cmp, Expression *exp2, int lineNumber) : exp(exp), lineNumber(lineNumber), cmp(cmp), exp2(exp2) {}
 
 IfStmt::~IfStmt() {
+    delete exp;
+    delete exp2;
 }
 
 void IfStmt::execute(EvalState &state, Program &program) {

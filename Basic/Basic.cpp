@@ -20,7 +20,7 @@
 
 /* Function prototypes */
 
-void processLine(std::string line, Program &program, EvalState &state);
+void processLine(std::string line, Program &program, EvalState &state, Statement * s);
 Statement* parseClause(std::string line, bool singleLine=false);
 bool validVarName(const std::string &);
 
@@ -31,6 +31,7 @@ int main() {
     Program program;
     //cout << "Stub implementation of BASIC" << endl;
     while (true) {
+        Statement *s = nullptr;
         try {
             std::string input;
             getline(std::cin, input);
@@ -83,9 +84,12 @@ int main() {
                 std::cout << "HELP: print this help message" << std::endl;
                 continue;
             }
-            processLine(input, program, state);
+            processLine(input, program, state, s);
         } catch (ErrorException &ex) {
             std::cout << ex.getMessage() << std::endl;
+            if (s != nullptr) {
+                delete s;
+            }
         }
     }
     return 0;
@@ -103,16 +107,17 @@ int main() {
  * or one of the BASIC commands, such as LIST or RUN.
  */
 
-void processLine(std::string line, Program &program, EvalState &state) {
-    auto s = parseClause(line, true);
+void processLine(std::string line, Program &program, EvalState &state, Statement * s) {
+    s = parseClause(line, true);
     s->execute(state, program);
     delete s;
+    s = nullptr;
 }
 
 Statement* parseClause(std::string line, bool singleLine) {
     TokenScanner scanner(line);
     scanner.ignoreWhitespace();
-    scanner.scanNumbers();
+    // scanner.scanNumbers();
     if (!singleLine) {
         std::string line = scanner.nextToken();
         if (scanner.getTokenType(line) != NUMBER) {

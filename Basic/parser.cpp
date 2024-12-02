@@ -6,6 +6,7 @@
 
 #include "parser.hpp"
 #include "Utils/error.hpp"
+#include "myTokenScanner.cpp"
 
 
 /*
@@ -56,7 +57,8 @@ Expression *readE(TokenScanner &scanner, int prec) {
 
 Expression *readT(TokenScanner &scanner) {
     std::string token = scanner.nextToken();
-    TokenType type = scanner.getTokenType(token);
+    myTokenScanner temp;
+    TokenType type = temp.getTokenType(token);
     if (type == WORD) return new IdentifierExp(token);
     if (type == NUMBER) return new ConstantExp(stringToInteger(token));
     if (token == "-") return new CompoundExp(token, new ConstantExp(0), readE(scanner));

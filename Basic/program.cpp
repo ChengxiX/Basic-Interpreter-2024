@@ -32,6 +32,9 @@ void Program::clear() {
 void Program::addSourceLine(int lineNumber, const std::string &line) {
     // Replace this stub with your own code
     //todo
+    if (clauses.find(lineNumber) != clauses.end()) {
+        removeSourceLine(lineNumber);
+    }
     clauses[lineNumber] = Clause{lineNumber, line, nullptr};
 }
 
